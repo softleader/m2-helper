@@ -1,0 +1,5 @@
+package: github.com/softleader/m2-helper
+import:
+- package: golang.org/x/net
+  subpackages:
+  - html/charset
