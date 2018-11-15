@@ -44,7 +44,26 @@ func main() {
 	flag.Parse()
 	target = regexp.MustCompile(*regex)
 
-	walkDir(root, containsTargetFile, compareFile)
+	walkDir(root, func(path string) (stop bool) {
+		files, err := ioutil.ReadDir(path)
+		if err != nil {
+			panic(err)
+		}
+		for _, f := range files {
+			if !f.IsDir() {
+				expected := filepath.Join(path, f.Name())
+				if target.MatchString(f.Name()) {
+					stop = true
+					if compareTo != "" {
+						actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
+						compare(expected, actual)
+					}
+					generateScript(path)
+				}
+			}
+		}
+		return
+	})
 
 	if len(notFounds) > 0 {
 		fmt.Printf("\n檔案不存在\n")
@@ -74,37 +93,15 @@ func main() {
 	}
 }
 
-func walkDir(dirpath string, stop func(path string) bool, callback func(path string)) {
+func walkDir(dirpath string, stop func(path string) bool) {
 	files, err := ioutil.ReadDir(dirpath)
 	if err != nil {
 		return
 	}
 	for _, file := range files {
 		if file.IsDir() {
-			p := path.Join(dirpath, file.Name())
-			if stop(p) {
-				callback(p)
-			} else {
-				walkDir(p, stop, callback)
-			}
-		}
-	}
-}
-
-func compareFile(path string) {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
-	for _, f := range files {
-		if !f.IsDir() {
-			expected := filepath.Join(path, f.Name())
-			if target.MatchString(f.Name()) {
-				if compareTo != "" {
-					actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
-					compare(expected, actual)
-				}
-				generateScript(path)
+			if p := path.Join(dirpath, file.Name()); !stop(p) {
+				walkDir(p, stop)
 			}
 		}
 	}
@@ -219,19 +216,6 @@ func compare(expectedPath string, actualPath string) {
 			sizeWrongs = append(sizeWrongs, fmt.Sprintf("%s (預期: %v, 實際: %v)", strings.Replace(actualPath, compareTo, ".", 1), expected.Size(), actual.Size()))
 		}
 	}
-}
-
-func containsTargetFile(path string) bool {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
-	for _, f := range files {
-		if !f.IsDir() && target.MatchString(f.Name()) {
-			return true
-		}
-	}
-	return false
 }
 
 type Pom struct {
