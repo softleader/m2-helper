@@ -294,7 +294,3 @@ func (p Pom) GetPackaging() string {
 func (p *Pom) isPackingPom() bool {
 	return p.GetPackaging() == "pom"
 }
-
-func (p *Pom) isJar() bool {
-	return p.GetPackaging() == "jar"
-}
