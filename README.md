@@ -28,3 +28,17 @@ Usage of ./m2-helper:
 - `prefix` - maven deploy template 前贅字
 - `suffix` - maven deploy template 後贅字
 - `packing` - 要產生 script 的 maven packing 目標
+
+### Example
+
+- 產生所有 jar 的 `mvn deploy:deploy-file` 指令
+
+```sh
+./m2-help -url=<nexus-url> -repoId=<server-in-settings.xml>
+```
+
+- 產生所有 packing 是 pom 的 `mvn deploy:deploy-file` 指令
+
+```sh
+./m2-help -regex=".pom$" -packing=pom -url=<nexus-url> -repoId=<server-in-settings.xml>
+```
