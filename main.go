@@ -30,6 +30,7 @@ var url string
 var prefix string
 var suffix string
 var repoId string
+var packing string
 
 func main() {
 	root, _ = os.Getwd()
@@ -39,6 +40,7 @@ func main() {
 	flag.StringVar(&repoId, "repoId", "REPO_ID", "-DrepositoryId of 'mvn deploy:deploy-file'")
 	flag.StringVar(&prefix, "prefix", "", "prefix of maven deploy template")
 	flag.StringVar(&suffix, "suffix", "-e", "suffix of maven deploy template")
+	flag.StringVar(&packing, "packing", "jar", "determine maven packing to generate script")
 	regex := flag.String("regex", ".jar$", "the regex to find the target file")
 
 	flag.Parse()
@@ -53,12 +55,17 @@ func main() {
 			if !f.IsDir() {
 				if target.MatchString(f.Name()) {
 					stop = true
+					expected := filepath.Join(path, f.Name())
 					if compareTo != "" {
-						expected := filepath.Join(path, f.Name())
 						actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
 						compare(expected, actual)
 					}
-					generateScript(path)
+
+					if !strings.HasSuffix(f.Name(), ".pom") {
+						expected = searchPomFile(path)
+					}
+					pom := loadPom(expected)
+					generateScript(pom)
 				}
 			}
 		}
@@ -107,32 +114,27 @@ func walkDir(dirpath string, stop func(path string) bool) {
 	}
 }
 
-func generateScript(path string) {
-	pomFile := searchPomFile(path)
-	pom := loadPom(pomFile)
-
-	if pom.isPackingPom() {
-		pom.File = strings.Replace(pomFile, root, ".", 1)
-	} else {
-		pom.File = searchJarFile(path)
+func generateScript(pom Pom) {
+	if pom.Packaging != packing { // not the generate target
+		return
+	}
+	if pom.Packaging == "pom" {
+		pom.File = strings.Replace(pom.Path, root, ".", 1)
+	} else if pom.Packaging == "jar" {
+		pom.File = searchJarFile(filepath.Dir(pom.Path))
 		if pom.File == "" { // pom 宣告是 packing jar, 但目錄下又找不到 jar??
 			return
 		}
 		pom.File = strings.Replace(pom.File, root, ".", 1)
+	} else {
+		panic(fmt.Sprintf("Unsupported maven packing: %s", pom.Packaging))
 	}
-
-	pom.RepositoryId = repoId
-	pom.Url = url
-	pom.Prefix = prefix
-	pom.Suffix = suffix
-
 	var buf bytes.Buffer
 	t := template.Must(template.New("").Parse(mvnDeployTemplate))
 	err := t.Execute(&buf, pom)
 	if err != nil {
 		panic(err)
 	}
-
 	scripts = append(scripts, buf.String())
 }
 
@@ -198,6 +200,13 @@ func loadPom(path string) (pom Pom) {
 			pomErrors = append(pomErrors, err.Error()+": "+path)
 		}
 	}
+
+	pom.Path = path
+	pom.RepositoryId = repoId
+	pom.Url = url
+	pom.Prefix = prefix
+	pom.Suffix = suffix
+
 	return
 }
 
@@ -218,6 +227,7 @@ func compare(expectedPath string, actualPath string) {
 }
 
 type Pom struct {
+	Path   string // pom 檔案的路徑
 	Parent struct {
 		GroupId    string `xml:"groupId"`
 		ArtifactId string `xml:"artifactId"`
@@ -272,8 +282,4 @@ func (p Pom) GetPackaging() string {
 		return "jar"
 	}
 	return p.Packaging
-}
-
-func (p *Pom) isPackingPom() bool {
-	return p.GetPackaging() == "pom"
 }
