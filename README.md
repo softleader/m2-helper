@@ -5,7 +5,9 @@ Usage of ./m2-helper:
   -compareTo string
     	compare to
   -cwd string
-    	current working directory
+    	current working directory (default "/Users/matt/go/src/github.com/softleader/m2-helper")
+  -packing string
+    	determine maven packing to generate script (default "jar")
   -prefix string
     	prefix of maven deploy template
   -regex string
@@ -25,3 +27,4 @@ Usage of ./m2-helper:
 - `url` - maven deploy 指令的 *-Durl* 參數
 - `prefix` - maven deploy template 前贅字
 - `suffix` - maven deploy template 後贅字
+- `packing` - 要產生 script 的 maven packing 目標
