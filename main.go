@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	mvnDeploy = `mvn deploy:deploy-file -DgroupId={{ .GetGroupId }} -DartifactId={{ .GetArtifactId }} -Dversion={{ .GetVersion }} -Dpackaging={{ .GetPackaging }} -Dfile={{ .File }} -DrepositoryId={{ .RepositoryId }} -Durl={{ .Url }} -e`
+	mvnDeployTemplate = `{{ .Prefix }} mvn deploy:deploy-file -DgroupId={{ .GetGroupId }} -DartifactId={{ .GetArtifactId }} -Dversion={{ .GetVersion }} -Dpackaging={{ .GetPackaging }} -Dfile={{ .File }} -DrepositoryId={{ .RepositoryId }} -Durl={{ .Url }} {{ .Suffix }}`
 )
 
 var notFounds []string
@@ -27,6 +27,8 @@ var root string
 var compareTo string
 var target *regexp.Regexp
 var url string
+var prefix string
+var suffix string
 var repoId string
 
 func main() {
@@ -35,6 +37,8 @@ func main() {
 	flag.StringVar(&root, "cwd", root, "current working directory")
 	flag.StringVar(&url, "url", "NEXUS_URL", "-Durl of 'mvn deploy:deploy-file'")
 	flag.StringVar(&repoId, "repoId", "REPO_ID", "-DrepositoryId of 'mvn deploy:deploy-file'")
+	flag.StringVar(&prefix, "prefix", "", "prefix of maven deploy template")
+	flag.StringVar(&suffix, "suffix", "-e", "suffix of maven deploy template")
 	regex := flag.String("regex", ".jar$", "the regex to find the target file")
 
 	flag.Parse()
@@ -122,9 +126,11 @@ func generateScript(path string) {
 
 	pom.RepositoryId = repoId
 	pom.Url = url
+	pom.Prefix = prefix
+	pom.Suffix = suffix
 
 	var buf bytes.Buffer
-	t := template.Must(template.New("").Parse(mvnDeploy))
+	t := template.Must(template.New("").Parse(mvnDeployTemplate))
 	err := t.Execute(&buf, pom)
 	if err != nil {
 		panic(err)
@@ -241,6 +247,8 @@ type Pom struct {
 	File         string
 	RepositoryId string
 	Url          string
+	Prefix       string
+	Suffix       string
 }
 
 func (p Pom) GetGroupId() (s string) {
