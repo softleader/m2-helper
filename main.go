@@ -26,12 +26,17 @@ var pomErrors []string
 var root string
 var compareTo string
 var target *regexp.Regexp
+var url string
+var repoId string
 
 func main() {
 	root, _ = os.Getwd()
 	flag.StringVar(&compareTo, "compareTo", "", "compare to")
 	flag.StringVar(&root, "cwd", root, "current working directory")
+	flag.StringVar(&url, "url", "NEXUS_URL", "-Durl of 'mvn deploy:deploy-file'")
+	flag.StringVar(&repoId, "repoId", "REPO_ID", "-DrepositoryId of 'mvn deploy:deploy-file'")
 	regex := flag.String("regex", ".jar$", "the regex to find the target file")
+
 	flag.Parse()
 	target = regexp.MustCompile(*regex)
 
@@ -115,8 +120,8 @@ func generateScript(path string) {
 		pom.File = strings.Replace(pom.File, root, ".", 1)
 	}
 
-	pom.RepositoryId = "REPO_ID"
-	pom.Url = "NEXUS_URL"
+	pom.RepositoryId = repoId
+	pom.Url = url
 
 	var buf bytes.Buffer
 	t := template.Must(template.New("").Parse(mvnDeploy))
