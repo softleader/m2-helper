@@ -51,10 +51,10 @@ func main() {
 		}
 		for _, f := range files {
 			if !f.IsDir() {
-				expected := filepath.Join(path, f.Name())
 				if target.MatchString(f.Name()) {
 					stop = true
 					if compareTo != "" {
+						expected := filepath.Join(path, f.Name())
 						actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
 						compare(expected, actual)
 					}
