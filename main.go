@@ -67,22 +67,22 @@ func main() {
 
 	if len(notFounds) > 0 {
 		fmt.Printf("\n檔案不存在\n")
-		for _, notfound := range notFounds {
-			fmt.Println(notfound)
+		for _, notFound := range notFounds {
+			fmt.Println(notFound)
 		}
 	}
 
 	if len(sizeWrongs) > 0 {
 		fmt.Printf("\n檔案大小 size 不合\n")
-		for _, sizewrong := range sizeWrongs {
-			fmt.Println(sizewrong)
+		for _, sizeWrong := range sizeWrongs {
+			fmt.Println(sizeWrong)
 		}
 	}
 
 	if len(pomErrors) > 0 {
 		fmt.Printf("\nLoad POM Error\n")
-		for _, pomerror := range pomErrors {
-			fmt.Println(pomerror)
+		for _, pomError := range pomErrors {
+			fmt.Println(pomError)
 		}
 	}
 
@@ -147,9 +147,7 @@ func distinct(s []string) []string {
 			}
 		}
 	}
-
 	return us
-
 }
 
 func searchPomFile(path string) string {
@@ -191,6 +189,7 @@ func loadPom(path string) (pom Pom) {
 	err = xml.Unmarshal(bytes, &pom)
 	if err != nil {
 
+		// xml unmarshal 只支援 UTF8, 如 ISO-8859-1 的就要用 decoder 轉換
 		decoder := xml.NewDecoder(strings.NewReader(string(bytes)))
 		decoder.CharsetReader = charset.NewReaderLabel
 		err = decoder.Decode(&pom)
