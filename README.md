@@ -34,11 +34,11 @@ Usage of ./m2-helper:
 - 產生所有 jar 的 `mvn deploy:deploy-file` 指令
 
 ```sh
-./m2-help -url=<nexus-url> -repoId=<server-in-settings.xml>
+./m2-helper -url=<nexus-url> -repoId=<server-in-settings.xml>
 ```
 
 - 產生所有 packing 是 pom 的 `mvn deploy:deploy-file` 指令
 
 ```sh
-./m2-help -regex=".pom$" -packing=pom -url=<nexus-url> -repoId=<server-in-settings.xml>
+./m2-helper -regex=".pom$" -packing=pom -url=<nexus-url> -repoId=<server-in-settings.xml>
 ```
