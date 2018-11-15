@@ -42,3 +42,9 @@ Usage of ./m2-helper:
 ```sh
 ./m2-helper -regex=".pom$" -packing=pom -url=<nexus-url> -repoId=<server-in-settings.xml>
 ```
+
+- 比較當前目錄跟指令 m2 目錄的所有 jar 檔, 並產生 script
+
+```sh
+./m2-helper -compareTo=</path/to/compare/m2> -url=<nexus-url> -repoId=<server-in-settings.xml>
+```
