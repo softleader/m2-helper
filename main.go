@@ -59,13 +59,14 @@ func main() {
 					if compareTo != "" {
 						actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
 						compare(expected, actual)
+					} else {
+						if !strings.HasSuffix(f.Name(), ".pom") {
+							expected = searchPomFile(path)
+						}
+						pom := loadPom(expected)
+						generateScript(pom)
 					}
 
-					if !strings.HasSuffix(f.Name(), ".pom") {
-						expected = searchPomFile(path)
-					}
-					pom := loadPom(expected)
-					generateScript(pom)
 				}
 			}
 		}
@@ -190,7 +191,6 @@ func loadPom(path string) (pom Pom) {
 	}
 	err = xml.Unmarshal(bytes, &pom)
 	if err != nil {
-
 		// xml unmarshal 只支援 UTF8, 如 ISO-8859-1 的就要用 decoder 轉換
 		decoder := xml.NewDecoder(strings.NewReader(string(bytes)))
 		decoder.CharsetReader = charset.NewReaderLabel
