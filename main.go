@@ -52,22 +52,20 @@ func main() {
 			panic(err)
 		}
 		for _, f := range files {
-			if !f.IsDir() {
-				if target.MatchString(f.Name()) {
-					stop = true
-					expected := filepath.Join(path, f.Name())
-					if compareTo != "" {
-						actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
-						compare(expected, actual)
-					} else {
-						if !strings.HasSuffix(f.Name(), ".pom") {
-							expected = searchPomFile(path)
-						}
-						pom := loadPom(expected)
-						generateScript(pom)
+			if !f.IsDir() && target.MatchString(f.Name()) {
+				stop = true
+				expected := filepath.Join(path, f.Name())
+				if compareTo != "" {
+					actual := filepath.Join(strings.Replace(path, root, compareTo, 1), f.Name())
+					compare(expected, actual)
+				} else {
+					if !strings.HasSuffix(f.Name(), ".pom") {
+						expected = searchPomFile(path)
 					}
-
+					pom := loadPom(expected)
+					generateScript(pom)
 				}
+
 			}
 		}
 		return
